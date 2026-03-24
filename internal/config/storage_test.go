@@ -90,8 +90,12 @@ func TestUpdateServer(t *testing.T) {
 func TestDeleteServer(t *testing.T) {
 	s := newTestStorage(t)
 
-	s.SaveServer(ServerConfig{ID: "id-1", Name: "Server 1", UUID: "uuid1"})
-	s.SaveServer(ServerConfig{ID: "id-2", Name: "Server 2", UUID: "uuid2"})
+	if err := s.SaveServer(ServerConfig{ID: "id-1", Name: "Server 1", UUID: "uuid1"}); err != nil {
+		t.Fatalf("SaveServer id-1: %v", err)
+	}
+	if err := s.SaveServer(ServerConfig{ID: "id-2", Name: "Server 2", UUID: "uuid2"}); err != nil {
+		t.Fatalf("SaveServer id-2: %v", err)
+	}
 
 	if err := s.DeleteServer("id-1"); err != nil {
 		t.Fatalf("DeleteServer: %v", err)
@@ -136,7 +140,9 @@ func TestSaveSettings(t *testing.T) {
 
 func TestAtomicSave(t *testing.T) {
 	s := newTestStorage(t)
-	s.SaveServer(ServerConfig{ID: "id-1", Name: "Server", UUID: "uuid"})
+	if err := s.SaveServer(ServerConfig{ID: "id-1", Name: "Server", UUID: "uuid"}); err != nil {
+		t.Fatalf("SaveServer: %v", err)
+	}
 
 	// tmp файлов не должно остаться
 	entries, _ := os.ReadDir(filepath.Dir(s.path))
