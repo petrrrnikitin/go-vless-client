@@ -15,21 +15,26 @@ import (
 	"go-vless-client/internal/config"
 )
 
+const connectTimeout = 30 * time.Second
+
 // Client управляет жизненным циклом sing-box и хранит состояние подключения.
 type Client struct {
 	mu     sync.Mutex
 	box    *box.Box
 	cancel context.CancelFunc
 	stats  *Stats
+	logger *AppLogger
 }
 
-func NewClient() *Client {
+func NewClient(logger *AppLogger) *Client {
 	return &Client{
-		stats: NewStats(),
+		stats:  NewStats(),
+		logger: logger,
 	}
 }
 
 // Connect запускает sing-box с конфигурацией сервера и настройками режима.
+// Возвращает ошибку если запуск не завершился за connectTimeout.
 func (c *Client) Connect(ctx context.Context, srv config.ServerConfig, settings config.AppSettings) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -38,13 +43,16 @@ func (c *Client) Connect(ctx context.Context, srv config.ServerConfig, settings 
 		return fmt.Errorf("already connected")
 	}
 
+	c.logger.Add("info", fmt.Sprintf("подключение к %s (%s:%d)…", srv.Name, srv.Address, srv.Port))
+
 	opts, err := buildOptions(srv, settings)
 	if err != nil {
+		c.logger.Add("error", fmt.Sprintf("ошибка конфигурации: %v", err))
 		return fmt.Errorf("build options: %w", err)
 	}
 
 	boxCtx, cancel := context.WithCancel(ctx)
-	boxCtx = include.Context(boxCtx) // регистрируем все протоколы sing-box
+	boxCtx = include.Context(boxCtx)
 
 	b, err := box.New(box.Options{
 		Context: boxCtx,
@@ -52,17 +60,33 @@ func (c *Client) Connect(ctx context.Context, srv config.ServerConfig, settings 
 	})
 	if err != nil {
 		cancel()
+		c.logger.Add("error", fmt.Sprintf("ошибка инициализации: %v", err))
 		return fmt.Errorf("create box: %w", err)
 	}
 
-	if err := b.Start(); err != nil {
+	c.logger.Add("info", "запуск sing-box…")
+
+	startErr := make(chan error, 1)
+	go func() { startErr <- b.Start() }()
+
+	select {
+	case err := <-startErr:
+		if err != nil {
+			cancel()
+			c.logger.Add("error", fmt.Sprintf("ошибка запуска: %v", err))
+			return fmt.Errorf("start box: %w", err)
+		}
+	case <-time.After(connectTimeout):
 		cancel()
-		return fmt.Errorf("start box: %w", err)
+		b.Close() //nolint:errcheck
+		c.logger.Add("error", "превышено время ожидания подключения (30с)")
+		return fmt.Errorf("connection timed out after 30s")
 	}
 
 	c.box = b
 	c.cancel = cancel
 	c.stats.Reset()
+	c.logger.Add("info", fmt.Sprintf("подключено к %s", srv.Name))
 	return nil
 }
 
@@ -75,10 +99,16 @@ func (c *Client) Disconnect() error {
 		return nil
 	}
 
+	c.logger.Add("info", "отключение…")
 	c.cancel()
 	err := c.box.Close()
 	c.box = nil
 	c.cancel = nil
+	if err != nil {
+		c.logger.Add("error", fmt.Sprintf("ошибка отключения: %v", err))
+	} else {
+		c.logger.Add("info", "отключено")
+	}
 	return err
 }
 

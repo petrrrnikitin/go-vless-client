@@ -12,6 +12,8 @@ export function Disconnect():Promise<void>;
 
 export function ExportURI(arg1:string):Promise<string>;
 
+export function GetLogs():Promise<Array<config.LogEntry>>;
+
 export function GetServers():Promise<Array<config.ServerConfig>>;
 
 export function GetSettings():Promise<config.AppSettings>;

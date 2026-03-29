@@ -22,6 +22,10 @@ export function ExportURI(arg1) {
   return window['go']['main']['App']['ExportURI'](arg1);
 }
 
+export function GetLogs() {
+  return window['go']['main']['App']['GetLogs']();
+}
+
 export function GetServers() {
   return window['go']['main']['App']['GetServers']();
 }

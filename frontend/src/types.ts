@@ -35,3 +35,9 @@ export interface Stats {
   upload: number
   download: number
 }
+
+export interface LogEntry {
+  time: string
+  level: string  // 'info' | 'warn' | 'error' | 'debug'
+  message: string
+}
