@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { NEmpty, NTag, NButton, NSpace, NPopconfirm } from 'naive-ui'
-import { useMessage } from 'naive-ui'
+import { ref, h } from 'vue'
+import { NEmpty, NTag, NButton, NPopconfirm, NDropdown, useMessage } from 'naive-ui'
 import { ExportURI } from '../../wailsjs/go/main/App'
 import { useAppStore } from '../stores/app'
 import type { ServerConfig } from '../types'
 import ServerForm from './ServerForm.vue'
-import SettingsModal from './SettingsModal.vue'
 import URIImport from './URIImport.vue'
 
 const store = useAppStore()
@@ -14,17 +12,7 @@ const message = useMessage()
 
 const showForm = ref(false)
 const editServer = ref<ServerConfig | null>(null)
-const showSettings = ref(false)
 const showURIImport = ref(false)
-
-function openURIImport() {
-  showURIImport.value = true
-}
-
-function handleParsed(cfg: ServerConfig) {
-  editServer.value = cfg
-  showForm.value = true
-}
 const pingResults = ref<Record<string, string>>({})
 const connecting = ref<string | null>(null)
 
@@ -35,6 +23,11 @@ function openAdd() {
 
 function openEdit(srv: ServerConfig) {
   editServer.value = srv
+  showForm.value = true
+}
+
+function handleParsed(cfg: ServerConfig) {
+  editServer.value = cfg
   showForm.value = true
 }
 
@@ -58,7 +51,7 @@ async function handleDisconnect() {
 }
 
 async function handlePing(srv: ServerConfig) {
-  pingResults.value[srv.id] = '...'
+  pingResults.value[srv.id] = '…'
   try {
     const ms = await store.ping(srv.id)
     pingResults.value[srv.id] = `${ms} мс`
@@ -79,16 +72,7 @@ async function handleCopyURI(id: string) {
   try {
     const uri = await ExportURI(id)
     await navigator.clipboard.writeText(uri)
-    message.success('URI скопирован в буфер обмена')
-  } catch (e: unknown) {
-    message.error(errorMessage(e))
-  }
-}
-
-async function handleCheckProxy() {
-  try {
-    const ip = await store.checkProxy()
-    message.success(`Внешний IP: ${ip}`)
+    message.success('URI скопирован')
   } catch (e: unknown) {
     message.error(errorMessage(e))
   }
@@ -98,6 +82,21 @@ function errorMessage(e: unknown): string {
   if (e instanceof Error) return e.message
   if (typeof e === 'string') return e
   return 'Неизвестная ошибка'
+}
+
+// "⋯" dropdown per server
+function menuOptions(srv: ServerConfig) {
+  return [
+    { label: 'Изменить',      key: 'edit' },
+    { label: 'Копировать URI', key: 'copy' },
+    { label: 'Удалить',       key: 'delete' },
+  ]
+}
+
+function handleMenuSelect(key: string, srv: ServerConfig) {
+  if (key === 'edit')   openEdit(srv)
+  if (key === 'copy')   handleCopyURI(srv.id)
+  if (key === 'delete') handleDelete(srv.id)
 }
 </script>
 
@@ -112,25 +111,23 @@ function errorMessage(e: unknown): string {
         class="server-card"
         :class="{ 'server-card--active': store.status.server_id === srv.id }"
       >
+        <!-- Info -->
         <div class="server-info">
-          <span class="server-name">{{ srv.name }}</span>
+          <div class="server-name-row">
+            <span class="server-name">{{ srv.name }}</span>
+            <span v-if="pingResults[srv.id]" class="ping-result">{{ pingResults[srv.id] }}</span>
+          </div>
           <span class="server-addr">{{ srv.address }}:{{ srv.port }}</span>
           <div class="server-tags">
             <NTag size="small" :bordered="false">{{ srv.transport.toUpperCase() }}</NTag>
             <NTag v-if="srv.tls" size="small" type="info" :bordered="false">TLS</NTag>
           </div>
-          <span v-if="pingResults[srv.id]" class="ping-result">{{ pingResults[srv.id] }}</span>
         </div>
+
+        <!-- Actions -->
         <div class="server-actions">
           <NButton size="small" @click="handlePing(srv)">Пинг</NButton>
-          <NButton size="small" @click="handleCopyURI(srv.id)">Копировать URI</NButton>
-          <NButton size="small" @click="openEdit(srv)">Изменить</NButton>
-          <NPopconfirm @positive-click="handleDelete(srv.id)">
-            <template #trigger>
-              <NButton size="small" type="error" ghost>Удалить</NButton>
-            </template>
-            Удалить сервер?
-          </NPopconfirm>
+
           <NButton
             v-if="store.status.server_id !== srv.id"
             size="small"
@@ -145,17 +142,21 @@ function errorMessage(e: unknown): string {
             type="warning"
             @click="handleDisconnect"
           >Отключить</NButton>
+
+          <NDropdown
+            :options="menuOptions(srv)"
+            @select="(key: string) => handleMenuSelect(key, srv)"
+          >
+            <NButton size="small" quaternary>⋯</NButton>
+          </NDropdown>
         </div>
       </div>
     </div>
 
+    <!-- Bottom bar -->
     <div class="bottom-bar">
-      <NSpace>
-        <NButton type="primary" @click="openAdd">+ Добавить сервер</NButton>
-        <NButton @click="openURIImport">Импортировать URI</NButton>
-        <NButton v-if="store.status.connected" @click="handleCheckProxy">Проверить IP</NButton>
-        <NButton @click="showSettings = true">Настройки</NButton>
-      </NSpace>
+      <NButton type="primary" @click="openAdd">+ Добавить</NButton>
+      <NButton @click="showURIImport = true">Импортировать URI</NButton>
     </div>
 
     <ServerForm
@@ -163,7 +164,6 @@ function errorMessage(e: unknown): string {
       :initial="editServer"
       @saved="showForm = false"
     />
-    <SettingsModal v-model:visible="showSettings" />
     <URIImport v-model:visible="showURIImport" @parsed="handleParsed" />
   </div>
 </template>
@@ -175,63 +175,87 @@ function errorMessage(e: unknown): string {
   flex: 1;
   overflow: hidden;
 }
+
 .server-items {
   flex: 1;
   overflow-y: auto;
   padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
+
 .empty {
   margin-top: 60px;
 }
+
 .server-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.06);
   transition: border-color 0.2s;
   gap: 12px;
 }
+
 .server-card--active {
   border-color: #18a058;
+  background: rgba(24, 160, 88, 0.05);
 }
+
 .server-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   min-width: 0;
+  flex: 1;
 }
+
+.server-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .server-name {
   font-weight: 500;
   font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
+.ping-result {
+  font-size: 11px;
+  color: #18a058;
+  flex-shrink: 0;
+}
+
 .server-addr {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.35);
 }
+
 .server-tags {
   display: flex;
   gap: 4px;
   margin-top: 2px;
 }
-.ping-result {
-  font-size: 11px;
-  color: #18a058;
-  margin-top: 2px;
-}
+
 .server-actions {
   display: flex;
   gap: 6px;
   align-items: center;
   flex-shrink: 0;
 }
+
 .bottom-bar {
-  padding: 12px 16px;
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
 }

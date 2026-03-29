@@ -22,8 +22,10 @@ func main() {
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:  "go-vless-client",
-		Width:  1024,
-		Height: 768,
+		Width:     900,
+		Height:    600,
+		MinWidth:  800,
+		MinHeight: 520,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
