@@ -11,6 +11,7 @@ export const useAppStore = defineStore('app', () => {
     socks5_port: 1080,
     http_port: 8080,
     api_port: 9090,
+    auto_connect: false,
   })
   const status = ref<ConnectionStatus>({ connected: false, mode: 'proxy' })
   const stats = ref<Stats>({ upload: 0, download: 0 })

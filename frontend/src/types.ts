@@ -20,6 +20,7 @@ export interface AppSettings {
   socks5_port: number
   http_port: number
   api_port: number
+  auto_connect: boolean
   last_server_id?: string
 }
 

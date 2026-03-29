@@ -38,6 +38,7 @@ type AppSettings struct {
 	HTTPPort     int    `json:"http_port"`
 	APIPort      int    `json:"api_port"`
 	LastServerID string `json:"last_server_id,omitempty"`
+	AutoConnect  bool   `json:"auto_connect"`
 }
 
 // DefaultSettings возвращает настройки по умолчанию.

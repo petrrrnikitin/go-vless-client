@@ -48,6 +48,16 @@ func (a *App) startup(ctx context.Context) {
 
 	// запускаем фоновую отправку статистики
 	go a.statsLoop(ctx)
+
+	// авто-подключение к последнему серверу
+	settings := storage.Settings()
+	if settings.AutoConnect && settings.LastServerID != "" {
+		go func() {
+			if err := a.Connect(settings.LastServerID); err != nil {
+				runtime.LogErrorf(ctx, "auto-connect failed: %v", err)
+			}
+		}()
+	}
 }
 
 // shutdown вызывается Wails при закрытии приложения.

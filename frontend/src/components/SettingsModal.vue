@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import {
-  NModal, NForm, NFormItem, NInputNumber, NSelect, NSpace, NButton,
+  NModal, NForm, NFormItem, NInputNumber, NSelect, NSwitch, NSpace, NButton,
   useMessage,
 } from 'naive-ui'
 import type { AppSettings } from '../types'
@@ -69,6 +69,9 @@ async function handleSave() {
       </NFormItem>
       <NFormItem label="API порт">
         <NInputNumber v-model:value="form.api_port" :min="1" :max="65535" style="width: 100%" />
+      </NFormItem>
+      <NFormItem label="Авто-подключение">
+        <NSwitch v-model:value="form.auto_connect" />
       </NFormItem>
     </NForm>
     <template #footer>
