@@ -1,21 +1,34 @@
-<script lang="ts" setup>
-import HelloWorld from './components/HelloWorld.vue'</script>
+<script setup lang="ts">
+import { onMounted } from 'vue'
+import { NConfigProvider, NMessageProvider, darkTheme } from 'naive-ui'
+import { useAppStore } from './stores/app'
+import StatusBar from './components/StatusBar.vue'
+import ServerList from './components/ServerList.vue'
+
+const store = useAppStore()
+onMounted(() => store.init())
+</script>
 
 <template>
-  <img id="logo" alt="Wails logo" src="./assets/images/logo-universal.png"/>
-  <HelloWorld/>
+  <NConfigProvider :theme="darkTheme" class="app-root">
+    <NMessageProvider>
+      <div class="layout">
+        <StatusBar />
+        <ServerList />
+      </div>
+    </NMessageProvider>
+  </NConfigProvider>
 </template>
 
 <style>
-#logo {
-  display: block;
-  width: 50%;
-  height: 50%;
-  margin: auto;
-  padding: 10% 0 0;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-  background-origin: content-box;
+.app-root {
+  height: 100%;
+  background: #1b2636;
+}
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.82);
 }
 </style>
