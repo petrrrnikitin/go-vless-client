@@ -16,6 +16,8 @@ export function GetSettings():Promise<config.AppSettings>;
 
 export function GetStatus():Promise<config.ConnectionStatus>;
 
+export function ExportURI(arg1:string):Promise<string>;
+
 export function ParseURI(arg1:string):Promise<config.ServerConfig>;
 
 export function Ping(arg1:string):Promise<number>;

@@ -30,6 +30,9 @@ export function GetStatus() {
   return window['go']['main']['App']['GetStatus']();
 }
 
+export function ExportURI(arg1) {
+  return window['go']['main']['App']['ExportURI'](arg1);
+}
 export function ParseURI(arg1) {
   return window['go']['main']['App']['ParseURI'](arg1);
 }

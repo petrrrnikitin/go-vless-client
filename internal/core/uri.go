@@ -8,6 +8,38 @@ import (
 	"go-vless-client/internal/config"
 )
 
+// BuildVLESSURI собирает vless:// URI из конфигурации сервера.
+func BuildVLESSURI(cfg config.ServerConfig) string {
+	q := url.Values{}
+
+	if cfg.TLS {
+		q.Set("security", "tls")
+	}
+	if cfg.SNI != "" {
+		q.Set("sni", cfg.SNI)
+	}
+	if cfg.Transport == config.TransportWS {
+		q.Set("type", "ws")
+		if cfg.Path != "" && cfg.Path != "/" {
+			q.Set("path", cfg.Path)
+		}
+	} else {
+		q.Set("type", "tcp")
+	}
+	if cfg.Flow != "" {
+		q.Set("flow", cfg.Flow)
+	}
+
+	u := url.URL{
+		Scheme:   "vless",
+		User:     url.User(cfg.UUID),
+		Host:     fmt.Sprintf("%s:%d", cfg.Address, cfg.Port),
+		RawQuery: q.Encode(),
+		Fragment: cfg.Name,
+	}
+	return u.String()
+}
+
 // ParseVLESSURI разбирает ссылку вида vless://uuid@host:port?params#name
 // в конфигурацию сервера. Поддерживаются транспорты tcp и ws, безопасность tls.
 func ParseVLESSURI(uri string) (config.ServerConfig, error) {

@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { NEmpty, NTag, NButton, NSpace, NPopconfirm } from 'naive-ui'
 import { useMessage } from 'naive-ui'
+import { ExportURI } from '../../wailsjs/go/main/App'
 import { useAppStore } from '../stores/app'
 import type { ServerConfig } from '../types'
 import ServerForm from './ServerForm.vue'
@@ -74,6 +75,16 @@ async function handleDelete(id: string) {
   }
 }
 
+async function handleCopyURI(id: string) {
+  try {
+    const uri = await ExportURI(id)
+    await navigator.clipboard.writeText(uri)
+    message.success('URI скопирован в буфер обмена')
+  } catch (e: unknown) {
+    message.error(errorMessage(e))
+  }
+}
+
 async function handleCheckProxy() {
   try {
     const ip = await store.checkProxy()
@@ -112,6 +123,7 @@ function errorMessage(e: unknown): string {
         </div>
         <div class="server-actions">
           <NButton size="small" @click="handlePing(srv)">Пинг</NButton>
+          <NButton size="small" @click="handleCopyURI(srv.id)">Копировать URI</NButton>
           <NButton size="small" @click="openEdit(srv)">Изменить</NButton>
           <NPopconfirm @positive-click="handleDelete(srv.id)">
             <template #trigger>
