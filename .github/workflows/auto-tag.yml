@@ -1,0 +1,35 @@
+name: Auto Tag
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  auto-tag:
+    name: Create tag on version change
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read VERSION file
+        id: version
+        run: echo "value=$(cat VERSION | tr -d '[:space:]')" >> $GITHUB_OUTPUT
+
+      - name: Get latest git tag
+        id: latest_tag
+        run: |
+          tag=$(git tag --sort=-version:refname | head -1)
+          echo "value=${tag#v}" >> $GITHUB_OUTPUT
+
+      - name: Create and push tag
+        if: steps.version.outputs.value != steps.latest_tag.outputs.value
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag v${{ steps.version.outputs.value }}
+          git push origin v${{ steps.version.outputs.value }}
