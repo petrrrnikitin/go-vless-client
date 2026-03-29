@@ -142,12 +142,21 @@ func (a *App) SaveSettings(s config.AppSettings) error {
 	return a.storage.SaveSettings(s)
 }
 
-// --- Импорт ---
+// --- Импорт / Экспорт ---
 
 // ParseURI разбирает VLESS URI и возвращает конфигурацию сервера для предпросмотра.
 // ID не заполняется — сервер не сохраняется, пользователь должен явно вызвать SaveServer.
 func (a *App) ParseURI(uri string) (config.ServerConfig, error) {
 	return core.ParseVLESSURI(uri)
+}
+
+// ExportURI возвращает VLESS URI для указанного сервера.
+func (a *App) ExportURI(serverID string) (string, error) {
+	srv, ok := a.storage.ServerByID(serverID)
+	if !ok {
+		return "", fmt.Errorf("server not found: %s", serverID)
+	}
+	return core.BuildVLESSURI(srv), nil
 }
 
 // --- Проверка соединения ---

@@ -99,3 +99,67 @@ func TestParseVLESSURI_InvalidPort(t *testing.T) {
 		t.Error("expected error for invalid port")
 	}
 }
+
+func TestBuildVLESSURI_TCP_TLS(t *testing.T) {
+	cfg := config.ServerConfig{
+		Name:      "MyServer",
+		Address:   "example.com",
+		Port:      443,
+		UUID:      "550e8400-e29b-41d4-a716-446655440000",
+		Transport: config.TransportTCP,
+		TLS:       true,
+		SNI:       "example.com",
+		Flow:      "xtls-rprx-vision",
+	}
+	uri := BuildVLESSURI(cfg)
+
+	got, err := ParseVLESSURI(uri)
+	if err != nil {
+		t.Fatalf("round-trip parse error: %v", err)
+	}
+	if got.UUID != cfg.UUID {
+		t.Errorf("UUID: got %q, want %q", got.UUID, cfg.UUID)
+	}
+	if got.Address != cfg.Address {
+		t.Errorf("Address: got %q", got.Address)
+	}
+	if got.Port != cfg.Port {
+		t.Errorf("Port: got %d", got.Port)
+	}
+	if !got.TLS {
+		t.Error("TLS should be true")
+	}
+	if got.SNI != cfg.SNI {
+		t.Errorf("SNI: got %q", got.SNI)
+	}
+	if got.Flow != cfg.Flow {
+		t.Errorf("Flow: got %q", got.Flow)
+	}
+	if got.Name != cfg.Name {
+		t.Errorf("Name: got %q", got.Name)
+	}
+}
+
+func TestBuildVLESSURI_WS(t *testing.T) {
+	cfg := config.ServerConfig{
+		Name:      "WS Server",
+		Address:   "cdn.example.com",
+		Port:      80,
+		UUID:      "550e8400-e29b-41d4-a716-446655440000",
+		Transport: config.TransportWS,
+		TLS:       false,
+		Path:      "/vless",
+	}
+	uri := BuildVLESSURI(cfg)
+
+	got, err := ParseVLESSURI(uri)
+	if err != nil {
+		t.Fatalf("round-trip parse error: %v", err)
+	}
+	if got.Transport != config.TransportWS {
+		t.Errorf("Transport: got %q", got.Transport)
+	}
+	if got.Path != "/vless" {
+		t.Errorf("Path: got %q", got.Path)
+	}
+}
