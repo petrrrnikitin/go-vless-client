@@ -132,6 +132,14 @@ func (a *App) SaveSettings(s config.AppSettings) error {
 	return a.storage.SaveSettings(s)
 }
 
+// --- Импорт ---
+
+// ParseURI разбирает VLESS URI и возвращает конфигурацию сервера для предпросмотра.
+// ID не заполняется — сервер не сохраняется, пользователь должен явно вызвать SaveServer.
+func (a *App) ParseURI(uri string) (config.ServerConfig, error) {
+	return core.ParseVLESSURI(uri)
+}
+
 // --- Проверка соединения ---
 
 // Ping измеряет TCP-задержку до сервера в миллисекундах.

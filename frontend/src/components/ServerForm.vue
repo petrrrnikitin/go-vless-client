@@ -44,7 +44,18 @@ const saving = ref(false)
 watch(
   () => props.visible,
   (v) => {
-    if (v) form.value = props.initial ? { ...props.initial } : defaultForm()
+    if (v) {
+      if (props.initial) {
+        form.value = {
+          ...props.initial,
+          sni: props.initial.sni ?? '',
+          path: props.initial.path ?? '/',
+          flow: props.initial.flow ?? '',
+        }
+      } else {
+        form.value = defaultForm()
+      }
+    }
   },
 )
 

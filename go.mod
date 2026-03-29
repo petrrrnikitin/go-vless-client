@@ -4,7 +4,12 @@ go 1.24.7
 
 toolchain go1.24.12
 
-require github.com/wailsapp/wails/v2 v2.11.0
+require (
+	github.com/google/uuid v1.6.0
+	github.com/sagernet/sing v0.8.2
+	github.com/sagernet/sing-box v1.13.3
+	github.com/wailsapp/wails/v2 v2.11.0
+)
 
 require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
@@ -21,7 +26,6 @@ require (
 	github.com/gofrs/uuid/v5 v5.4.0 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/hashicorp/yamux v0.1.2 // indirect
 	github.com/insomniacslk/dhcp v0.0.0-20260220084031-5adc3eb26f91 // indirect
@@ -55,8 +59,6 @@ require (
 	github.com/sagernet/gvisor v0.0.0-20250811.0-sing-box-mod.1 // indirect
 	github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a // indirect
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
-	github.com/sagernet/sing v0.8.2 // indirect
-	github.com/sagernet/sing-box v1.13.3 // indirect
 	github.com/sagernet/sing-mux v0.3.4 // indirect
 	github.com/sagernet/sing-tun v0.8.3 // indirect
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1 // indirect
