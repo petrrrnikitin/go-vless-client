@@ -11,6 +11,10 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
+// AppVersion задаётся через ldflags при сборке:
+// -ldflags "-X main.AppVersion=1.2.3"
+var AppVersion = "dev"
+
 func main() {
 	// Create an instance of the app structure
 	app := NewApp()

@@ -132,6 +132,11 @@ func (a *App) GetStatus() config.ConnectionStatus {
 	}
 }
 
+// GetVersion возвращает версию приложения, заданную при сборке через ldflags.
+func (a *App) GetVersion() string {
+	return AppVersion
+}
+
 // --- Настройки ---
 
 func (a *App) GetSettings() config.AppSettings {
