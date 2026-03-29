@@ -15,16 +15,19 @@ export const useAppStore = defineStore('app', () => {
   })
   const status = ref<ConnectionStatus>({ connected: false, mode: 'proxy' })
   const stats = ref<Stats>({ upload: 0, download: 0 })
+  const version = ref('dev')
 
   async function init() {
-    const [srv, stg, st] = await Promise.all([
+    const [srv, stg, st, ver] = await Promise.all([
       App.GetServers(),
       App.GetSettings(),
       App.GetStatus(),
+      App.GetVersion(),
     ])
     servers.value = srv ?? []
     settings.value = stg
     status.value = st
+    version.value = ver
 
     EventsOn('status:changed', (data: ConnectionStatus) => {
       status.value = data
@@ -72,7 +75,7 @@ export const useAppStore = defineStore('app', () => {
   }
 
   return {
-    servers, settings, status, stats,
+    servers, settings, status, stats, version,
     init, loadServers, saveServer, deleteServer,
     connect, disconnect, saveSettings, ping, checkProxy,
   }

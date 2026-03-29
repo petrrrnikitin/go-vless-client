@@ -18,6 +18,10 @@ export function Disconnect() {
   return window['go']['main']['App']['Disconnect']();
 }
 
+export function ExportURI(arg1) {
+  return window['go']['main']['App']['ExportURI'](arg1);
+}
+
 export function GetServers() {
   return window['go']['main']['App']['GetServers']();
 }
@@ -30,9 +34,10 @@ export function GetStatus() {
   return window['go']['main']['App']['GetStatus']();
 }
 
-export function ExportURI(arg1) {
-  return window['go']['main']['App']['ExportURI'](arg1);
+export function GetVersion() {
+  return window['go']['main']['App']['GetVersion']();
 }
+
 export function ParseURI(arg1) {
   return window['go']['main']['App']['ParseURI'](arg1);
 }

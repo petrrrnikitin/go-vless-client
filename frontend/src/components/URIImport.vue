@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { NModal, NButton, NInput, NSpace, useMessage } from 'naive-ui'
+import { ref, watch } from 'vue'
+import { NModal, NButton, NInput, NSpace, NText, useMessage } from 'naive-ui'
 import { ParseURI } from '../../wailsjs/go/main/App'
 import type { ServerConfig } from '../types'
 
@@ -13,6 +13,25 @@ const emit = defineEmits<{
 const message = useMessage()
 const uri = ref('')
 const loading = ref(false)
+const fromClipboard = ref(false)
+
+watch(
+  () => props.visible,
+  async (v) => {
+    if (!v) return
+    uri.value = ''
+    fromClipboard.value = false
+    try {
+      const text = await navigator.clipboard.readText()
+      if (text.trimStart().startsWith('vless://')) {
+        uri.value = text.trim()
+        fromClipboard.value = true
+      }
+    } catch {
+      // clipboard access denied — ignore
+    }
+  },
+)
 
 async function handleImport() {
   if (!uri.value.trim()) return
@@ -45,6 +64,9 @@ function handleClose() {
     :auto-focus="false"
     @update:show="emit('update:visible', $event)"
   >
+    <NText v-if="fromClipboard" depth="3" style="display: block; margin-bottom: 8px; font-size: 12px">
+      Обнаружен URI из буфера обмена
+    </NText>
     <NInput
       v-model:value="uri"
       type="textarea"
