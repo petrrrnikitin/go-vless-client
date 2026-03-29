@@ -36,11 +36,14 @@ jobs:
       - name: Build
         run: wails build -platform linux/amd64 -ldflags "-X main.AppVersion=${{ steps.version.outputs.value }}"
 
+      - name: Rename binary
+        run: mv build/bin/go-vless-client build/bin/go-vless-client-${{ steps.version.outputs.value }}-linux-amd64
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: go-vless-client-linux-amd64
-          path: build/bin/go-vless-client
+          path: build/bin/go-vless-client-${{ steps.version.outputs.value }}-linux-amd64
 
   build-windows:
     name: Build Windows
@@ -70,6 +73,13 @@ jobs:
       - name: Build
         run: wails build -platform windows/amd64 -nsis -ldflags "-X main.AppVersion=${{ steps.version.outputs.value }}"
 
+      - name: Rename artifacts
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.version.outputs.value }}"
+          Rename-Item build/bin/go-vless-client.exe "go-vless-client-${ver}-windows-amd64.exe"
+          Rename-Item build/bin/go-vless-client-amd64-installer.exe "go-vless-client-${ver}-windows-amd64-setup.exe"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -85,6 +95,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Read version
+        id: version
+        run: echo "value=$(cat VERSION | tr -d '[:space:]')" >> $GITHUB_OUTPUT
+
       - name: Download Linux artifact
         uses: actions/download-artifact@v4
         with:
@@ -97,8 +111,31 @@ jobs:
           name: go-vless-client-windows-amd64
           path: dist/
 
+      - name: Generate SHA256 checksums
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
+
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*
           generate_release_notes: true
+          body: |
+            ## Установка
+
+            | Файл | Описание |
+            |------|----------|
+            | `go-vless-client-${{ steps.version.outputs.value }}-linux-amd64` | Linux бинарь (amd64) |
+            | `go-vless-client-${{ steps.version.outputs.value }}-windows-amd64.exe` | Windows приложение (amd64) |
+            | `go-vless-client-${{ steps.version.outputs.value }}-windows-amd64-setup.exe` | Windows установщик (amd64) |
+            | `SHA256SUMS` | Контрольные суммы SHA256 |
+
+            ### Linux
+            ```bash
+            chmod +x go-vless-client-${{ steps.version.outputs.value }}-linux-amd64
+            ./go-vless-client-${{ steps.version.outputs.value }}-linux-amd64
+            ```
+
+            > VPN-режим (TUN) требует прав root или `CAP_NET_ADMIN`.
