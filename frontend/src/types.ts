@@ -1,5 +1,6 @@
-export type Mode = 'proxy' | 'vpn' | 'both'
-export type Transport = 'tcp' | 'ws'
+// Базовые типы совместимы с wailsjs/go/models (Wails использует string для enum-полей)
+export type Mode = string       // 'proxy' | 'vpn' | 'both'
+export type Transport = string  // 'tcp' | 'ws'
 
 export interface ServerConfig {
   id: string
@@ -9,9 +10,9 @@ export interface ServerConfig {
   uuid: string
   transport: Transport
   tls: boolean
-  sni: string
-  path: string
-  flow: string
+  sni?: string
+  path?: string
+  flow?: string
 }
 
 export interface AppSettings {

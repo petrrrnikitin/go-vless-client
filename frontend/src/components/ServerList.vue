@@ -6,6 +6,7 @@ import { useAppStore } from '../stores/app'
 import type { ServerConfig } from '../types'
 import ServerForm from './ServerForm.vue'
 import SettingsModal from './SettingsModal.vue'
+import URIImport from './URIImport.vue'
 
 const store = useAppStore()
 const message = useMessage()
@@ -13,6 +14,16 @@ const message = useMessage()
 const showForm = ref(false)
 const editServer = ref<ServerConfig | null>(null)
 const showSettings = ref(false)
+const showURIImport = ref(false)
+
+function openURIImport() {
+  showURIImport.value = true
+}
+
+function handleParsed(cfg: ServerConfig) {
+  editServer.value = cfg
+  showForm.value = true
+}
 const pingResults = ref<Record<string, string>>({})
 const connecting = ref<string | null>(null)
 
@@ -129,6 +140,7 @@ function errorMessage(e: unknown): string {
     <div class="bottom-bar">
       <NSpace>
         <NButton type="primary" @click="openAdd">+ Добавить сервер</NButton>
+        <NButton @click="openURIImport">Импортировать URI</NButton>
         <NButton v-if="store.status.connected" @click="handleCheckProxy">Проверить IP</NButton>
         <NButton @click="showSettings = true">Настройки</NButton>
       </NSpace>
@@ -140,6 +152,7 @@ function errorMessage(e: unknown): string {
       @saved="showForm = false"
     />
     <SettingsModal v-model:visible="showSettings" />
+    <URIImport v-model:visible="showURIImport" @parsed="handleParsed" />
   </div>
 </template>
 
