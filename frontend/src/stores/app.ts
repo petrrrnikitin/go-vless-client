@@ -36,9 +36,11 @@ export const useAppStore = defineStore('app', () => {
       status.value = data
       if (!data.connected) stats.value = { upload: 0, download: 0 }
     })
+
     EventsOn('stats:update', (data: Stats) => {
       stats.value = data
     })
+
     EventsOn('log:entry', (entry: LogEntry) => {
       logs.value.push(entry)
       if (logs.value.length > 500) logs.value.shift()
