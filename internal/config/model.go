@@ -64,3 +64,10 @@ type Stats struct {
 	Upload   int64 `json:"upload"`   // байт отправлено
 	Download int64 `json:"download"` // байт получено
 }
+
+// LogEntry представляет одну запись в логе приложения.
+type LogEntry struct {
+	Time    string `json:"time"`
+	Level   string `json:"level"`   // "info", "warn", "error", "debug"
+	Message string `json:"message"`
+}

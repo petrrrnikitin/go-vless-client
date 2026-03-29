@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { ServerConfig, AppSettings, ConnectionStatus, Stats } from '../types'
+import type { ServerConfig, AppSettings, ConnectionStatus, Stats, LogEntry } from '../types'
 import * as App from '../../wailsjs/go/main/App'
 import { EventsOn } from '../../wailsjs/runtime/runtime'
 
@@ -16,18 +16,21 @@ export const useAppStore = defineStore('app', () => {
   const status = ref<ConnectionStatus>({ connected: false, mode: 'proxy' })
   const stats = ref<Stats>({ upload: 0, download: 0 })
   const version = ref('dev')
+  const logs = ref<LogEntry[]>([])
 
   async function init() {
-    const [srv, stg, st, ver] = await Promise.all([
+    const [srv, stg, st, ver, initialLogs] = await Promise.all([
       App.GetServers(),
       App.GetSettings(),
       App.GetStatus(),
       App.GetVersion(),
+      App.GetLogs(),
     ])
     servers.value = srv ?? []
     settings.value = stg
     status.value = st
     version.value = ver
+    logs.value = initialLogs ?? []
 
     EventsOn('status:changed', (data: ConnectionStatus) => {
       status.value = data
@@ -35,6 +38,10 @@ export const useAppStore = defineStore('app', () => {
     })
     EventsOn('stats:update', (data: Stats) => {
       stats.value = data
+    })
+    EventsOn('log:entry', (entry: LogEntry) => {
+      logs.value.push(entry)
+      if (logs.value.length > 500) logs.value.shift()
     })
   }
 
@@ -74,9 +81,13 @@ export const useAppStore = defineStore('app', () => {
     return App.CheckProxy()
   }
 
+  function clearLogs() {
+    logs.value = []
+  }
+
   return {
-    servers, settings, status, stats, version,
+    servers, settings, status, stats, version, logs,
     init, loadServers, saveServer, deleteServer,
-    connect, disconnect, saveSettings, ping, checkProxy,
+    connect, disconnect, saveSettings, ping, checkProxy, clearLogs,
   }
 })

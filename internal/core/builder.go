@@ -13,7 +13,7 @@ import (
 func buildOptions(srv config.ServerConfig, settings config.AppSettings) (option.Options, error) {
 	opts := option.Options{
 		Log: &option.LogOptions{
-			Disabled: true,
+			Level: "info",
 		},
 	}
 
@@ -24,7 +24,7 @@ func buildOptions(srv config.ServerConfig, settings config.AppSettings) (option.
 
 	opts.Outbounds = []option.Outbound{
 		vlessOut,
-		{Type: "direct", Tag: "direct"},
+		{Type: "direct", Tag: "direct", Options: &option.DirectOutboundOptions{}},
 	}
 
 	switch settings.Mode {
@@ -72,7 +72,7 @@ func buildVLESSOutbound(srv config.ServerConfig) (option.Outbound, error) {
 	return option.Outbound{
 		Type:    "vless",
 		Tag:     "vless-out",
-		Options: vlessOpts,
+		Options: &vlessOpts,
 	}, nil
 }
 
@@ -82,7 +82,7 @@ func buildProxyInbounds(settings config.AppSettings) []option.Inbound {
 	socks := option.Inbound{
 		Type: "socks",
 		Tag:  "socks-in",
-		Options: option.SocksInboundOptions{
+		Options: &option.SocksInboundOptions{
 			ListenOptions: option.ListenOptions{
 				Listen:     localhost,
 				ListenPort: uint16(settings.Socks5Port),
@@ -93,7 +93,7 @@ func buildProxyInbounds(settings config.AppSettings) []option.Inbound {
 	http := option.Inbound{
 		Type: "http",
 		Tag:  "http-in",
-		Options: option.HTTPMixedInboundOptions{
+		Options: &option.HTTPMixedInboundOptions{
 			ListenOptions: option.ListenOptions{
 				Listen:     localhost,
 				ListenPort: uint16(settings.HTTPPort),
@@ -108,7 +108,7 @@ func buildTUNInbound() option.Inbound {
 	return option.Inbound{
 		Type: "tun",
 		Tag:  "tun-in",
-		Options: option.TunInboundOptions{
+		Options: &option.TunInboundOptions{
 			InterfaceName: "tun0",
 			Address: badoption.Listable[netip.Prefix]{
 				netip.MustParsePrefix("172.19.0.1/30"),

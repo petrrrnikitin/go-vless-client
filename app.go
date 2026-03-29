@@ -18,14 +18,17 @@ type App struct {
 	ctx     context.Context
 	storage *config.Storage
 	client  *core.Client
+	logger  *core.AppLogger
 
 	// активное подключение
 	activeServerID string
 }
 
 func NewApp() *App {
+	logger := core.NewAppLogger()
 	return &App{
-		client: core.NewClient(),
+		logger: logger,
+		client: core.NewClient(logger),
 	}
 }
 
@@ -45,6 +48,12 @@ func (a *App) startup(ctx context.Context) {
 	if err := apiSrv.Start(ctx, storage.Settings().APIPort); err != nil {
 		runtime.LogErrorf(ctx, "failed to start api server: %v", err)
 	}
+
+	// пробрасываем новые лог-записи во фронтенд в реальном времени
+	a.logger.SetOnChange(func(entry config.LogEntry) {
+		runtime.EventsEmit(ctx, "log:entry", entry)
+	})
+	a.logger.Add("info", "приложение запущено")
 
 	// запускаем фоновую отправку статистики
 	go a.statsLoop(ctx)
@@ -135,6 +144,11 @@ func (a *App) GetStatus() config.ConnectionStatus {
 // GetVersion возвращает версию приложения, заданную при сборке через ldflags.
 func (a *App) GetVersion() string {
 	return AppVersion
+}
+
+// GetLogs возвращает все накопленные записи лога.
+func (a *App) GetLogs() []config.LogEntry {
+	return a.logger.Entries()
 }
 
 // --- Настройки ---
