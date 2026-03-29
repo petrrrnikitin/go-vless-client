@@ -5,21 +5,21 @@ export namespace config {
 	    socks5_port: number;
 	    http_port: number;
 	    api_port: number;
-	    auto_connect: boolean;
 	    last_server_id?: string;
-
+	    auto_connect: boolean;
+	
 	    static createFrom(source: any = {}) {
 	        return new AppSettings(source);
 	    }
-
+	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.mode = source["mode"];
 	        this.socks5_port = source["socks5_port"];
 	        this.http_port = source["http_port"];
 	        this.api_port = source["api_port"];
-	        this.auto_connect = source["auto_connect"];
 	        this.last_server_id = source["last_server_id"];
+	        this.auto_connect = source["auto_connect"];
 	    }
 	}
 	export class ConnectionStatus {

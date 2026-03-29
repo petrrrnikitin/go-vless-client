@@ -10,6 +10,7 @@ import (
 	"time"
 
 	box "github.com/sagernet/sing-box"
+	"github.com/sagernet/sing-box/include"
 
 	"go-vless-client/internal/config"
 )
@@ -43,6 +44,7 @@ func (c *Client) Connect(ctx context.Context, srv config.ServerConfig, settings 
 	}
 
 	boxCtx, cancel := context.WithCancel(ctx)
+	boxCtx = include.Context(boxCtx) // регистрируем все протоколы sing-box
 
 	b, err := box.New(box.Options{
 		Context: boxCtx,

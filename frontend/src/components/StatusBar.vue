@@ -32,6 +32,7 @@ function formatBytes(n: number): string {
         <span class="traffic">↑ {{ formatBytes(store.stats.upload) }}</span>
         <span class="traffic">↓ {{ formatBytes(store.stats.download) }}</span>
       </template>
+      <span class="version">v{{ store.version }}</span>
     </div>
   </div>
 </template>
@@ -70,5 +71,9 @@ function formatBytes(n: number): string {
 .traffic {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.45);
+}
+.version {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.2);
 }
 </style>
